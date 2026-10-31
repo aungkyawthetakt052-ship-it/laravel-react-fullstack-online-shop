@@ -15,6 +15,7 @@ Features a responsive dashboard, SweetAlert2 confirmation dialogs for delete act
 - **Modern UI** – Built with Tailwind CSS
 - **Authentication** – Laravel Breeze / Sanctum ready
 - **API-based Architecture** – Laravel API + React SPA
+- **Stripe payment ** - Laravel + Stripe
 
 ---
 
