@@ -1,5 +1,6 @@
-import { Link, useForm } from "@inertiajs/react";
-import { FormEvent, useState } from "react";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { FormEvent, useEffect, useState } from "react";
+import { ArrowLeft, Upload, X } from "lucide-react";
 
 interface EditUser {
     id: number;
@@ -27,212 +28,277 @@ export default function Edit({ user }: PageProp) {
     });
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [thumbnail, setThumbnail] = useState<string | null>(null);
+
+    // ပုံအသစ် preview (memory leak မဖြစ်အောင်)
+    useEffect(() => {
+        if (!data.image) {
+            setThumbnail(null);
+            return;
+        }
+        const url = URL.createObjectURL(data.image);
+        setThumbnail(url);
+        return () => URL.revokeObjectURL(url);
+    }, [data.image]);
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-
-        // File upload ရှိလို့ post + _method=PUT သုံးတာ ပိုစိတ်ချရတယ်
         post(`/user/update/${user.id}`, {
             forceFormData: true,
-            onSuccess: () => {
-                // အောင်မြင်ရင် လုပ်ချင်တာ ထည့်လို့ရတယ်
-            },
         });
     };
 
     return (
-        <div className="mx-auto max-w-2xl overflow-hidden bg-gray-700/80 rounded-sm ml-20">
-            <div className="m-8">
-                <h1 className="text-xl py-8">User edit page</h1>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+            <Head title={`Edit ${user.name}`} />
 
-                <form onSubmit={handleSubmit}>
-                    {/* Username */}
-                    <label>
-                        Username <span className="text-red-500">*</span>
-                    </label>
-                    <div className="py-2">
-                        <input
-                            type="text"
-                            value={data.name}
-                            onChange={(e) => setData("name", e.target.value)}
-                            className="w-120 px-4 py-3 rounded-sm text-white font-semibold border border-gray-700 bg-gray-800 focus:outline-sky-400"
-                        />
-                        {errors.name && (
-                            <p className="text-sm text-pink-500">{errors.name}</p>
-                        )}
-                    </div>
+            <div className="w-full max-w-2xl px-4 py-8 sm:px-6">
+                {/* Header - create page နဲ့ ပုံစံတူ */}
+                <div className="mb-8 pl-0">
+                    <Link
+                        href="/users"
+                        className="mb-5 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                        <ArrowLeft size={16} />
+                        Back
+                    </Link>
 
-                    {/* Email */}
-                    <label>
-                        Email address <span className="text-red-500">*</span>
-                    </label>
-                    <div className="py-2">
-                        <input
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData("email", e.target.value)}
-                            className="w-120 px-4 py-3 rounded-sm text-white font-semibold border border-gray-700 bg-gray-800 focus:outline-sky-400"
-                        />
-                        {errors.email && (
-                            <p className="text-sm text-pink-500">{errors.email}</p>
-                        )}
-                    </div>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        Edit User
+                    </h1>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Update information for {user.name}
+                    </p>
+                </div>
 
-                    {/* Password */}
-                    <label>
-                        Password{" "}
-                        <span className="text-gray-400 text-sm">(leave blank if no change)</span>
-                    </label>
-                    <div className="py-2">
-                        <input
-                            type="password"
-                            value={data.password}
-                            onChange={(e) => setData("password", e.target.value)}
-                            className="w-120 px-4 py-3 rounded-sm text-white font-semibold border border-gray-700 bg-gray-800 focus:outline-sky-400"
-                        />
-                        {errors.password && (
-                            <p className="text-sm text-pink-500">{errors.password}</p>
-                        )}
-                    </div>
-
-                    {/* Age */}
-                    <label>
-                        Age <span className="text-red-500">*</span>
-                    </label>
-                    <div className="py-2">
-                        <input
-                            type="number"
-                            value={data.age}
-                            onChange={(e) => setData("age", e.target.value)}
-                            className="w-120 px-4 py-3 rounded-sm text-white font-semibold border border-gray-700 bg-gray-800 focus:outline-sky-400"
-                        />
-                        {errors.age && (
-                            <p className="text-sm text-pink-500">{errors.age}</p>
-                        )}
-                    </div>
-
-                    {/* Role */}
-                    <label>Role</label>
-                    <div className="py-2">
-                        <select
-                            value={data.role}
-                            onChange={(e) => setData("role", e.target.value)}
-                            className="w-120 px-4 py-3 rounded-sm text-white font-semibold border border-gray-700 bg-gray-800 focus:outline-sky-400"
-                        >
-                            <option value="">-- Select Role --</option>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
-                        </select>
-                        {errors.role && (
-                            <p className="text-sm text-pink-500">{errors.role}</p>
-                        )}
-                    </div>
-
-                    {/* Current Image */}
-                    {user.image && !data.image && (
-                        <div className="mb-4">
-                            <p className="mb-3 text-sm text-gray-400">
-                                Current photo:{" "}
-                                <span className="text-sm text-gray-400">Click to view</span>
-                            </p>
-                            <img
-                                src={`/storage/${user.image}`}
-                                alt={user.name}
-                                onClick={() => setPreviewImage(`/storage/${user.image}`)}
-                                className="w-32 h-32 rounded-lg border border-gray-700 object-cover cursor-pointer"
-                            />
-                        </div>
-                    )}
-
-                    {/* Image Upload */}
-                    <div className="py-2">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                                setData("image", e.target.files?.[0] || null)
-                            }
-                            className="w-120 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white file:mr-4 file:rounded-md file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
-                        />
-                        {errors.image && (
-                            <p className="text-sm text-pink-500">{errors.image}</p>
-                        )}
-                    </div>
-
-                    {/* New Image Preview */}
-                    {data.image && (
-                        <div className="mt-4">
-                            <p className="mb-2 text-sm text-gray-400">
-                                New Image:{" "}
-                                <span className="text-sm text-gray-400">Click to view</span>
-                            </p>
-                            <img
-                                src={URL.createObjectURL(data.image)}
-                                alt="New preview"
-                                onClick={() =>
-                                    setPreviewImage(URL.createObjectURL(data.image as File))
-                                }
-                                className="h-28 w-28 cursor-pointer rounded-xl border border-gray-700 object-cover transition hover:opacity-80"
-                            />
-                        </div>
-                    )}
-
-                    {/* Upload Progress */}
-                    {progress && (
-                        <div className="mt-4">
-                            <div className="mb-1 flex justify-between text-sm text-gray-400">
-                                <span>Uploading......</span>
-                                <span>{progress.percentage}%</span>
-                            </div>
-                            <div className="h-2 overflow-hidden rounded-full bg-gray-700">
-                                <div
-                                    className="h-full rounded-full bg-blue-500 transition-all duration-300"
-                                    style={{ width: `${progress.percentage}%` }}
+                {/* Form Card */}
+                <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+                        <div className="space-y-6">
+                            {/* Name */}
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Full Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.name}
+                                    onChange={(e) => setData("name", e.target.value)}
+                                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-indigo-500"
+                                    placeholder="Enter full name"
                                 />
+                                {errors.name && (
+                                    <p className="mt-1.5 text-sm text-red-500">{errors.name}</p>
+                                )}
                             </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Email Address <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    value={data.email}
+                                    onChange={(e) => setData("email", e.target.value)}
+                                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-indigo-500"
+                                    placeholder="name@example.com"
+                                />
+                                {errors.email && (
+                                    <p className="mt-1.5 text-sm text-red-500">{errors.email}</p>
+                                )}
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Password{" "}
+                                    <span className="text-xs text-gray-400">
+                                        (leave blank to keep current)
+                                    </span>
+                                </label>
+                                <input
+                                    type="password"
+                                    value={data.password}
+                                    onChange={(e) => setData("password", e.target.value)}
+                                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-indigo-500"
+                                    placeholder="••••••••"
+                                />
+                                {errors.password && (
+                                    <p className="mt-1.5 text-sm text-red-500">{errors.password}</p>
+                                )}
+                            </div>
+
+                            {/* Age + Role */}
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Age <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={data.age}
+                                        onChange={(e) => setData("age", e.target.value)}
+                                        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-indigo-500"
+                                        placeholder="25"
+                                    />
+                                    {errors.age && (
+                                        <p className="mt-1.5 text-sm text-red-500">{errors.age}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Role
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={data.role}
+                                            onChange={(e) => setData("role", e.target.value)}
+                                            className="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-indigo-500"
+                                        >
+                                            <option value="">Select role</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="user">User</option>
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                            <svg
+                                                className="h-4 w-4 text-gray-400"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M19 9l-7 7-7-7"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    {errors.role && (
+                                        <p className="mt-1.5 text-sm text-red-500">{errors.role}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Current Image */}
+                            {user.image && !data.image && (
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Current Photo
+                                    </label>
+                                    <img
+                                        src={`/storage/${user.image}`}
+                                        alt={user.name}
+                                        onClick={() => setPreviewImage(`/storage/${user.image}`)}
+                                        className="h-28 w-28 cursor-pointer rounded-xl object-cover shadow-sm transition hover:opacity-80"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Image Upload */}
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Profile Photo
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition hover:border-indigo-400 hover:bg-indigo-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-indigo-500 dark:hover:bg-indigo-500/10">
+                                        <Upload size={18} />
+                                        Choose Image
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) =>
+                                                setData("image", e.target.files?.[0] || null)
+                                            }
+                                        />
+                                    </label>
+                                    {data.image && (
+                                        <span className="truncate text-sm text-gray-500 dark:text-gray-400">
+                                            {data.image.name}
+                                        </span>
+                                    )}
+                                </div>
+                                {errors.image && (
+                                    <p className="mt-1.5 text-sm text-red-500">{errors.image}</p>
+                                )}
+                            </div>
+
+                            {/* New Image Preview */}
+                            {data.image && thumbnail && (
+                                <div>
+                                    <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                        New Photo Preview
+                                    </p>
+                                    <img
+                                        src={thumbnail}
+                                        alt="Preview"
+                                        onClick={() => setPreviewImage(thumbnail)}
+                                        className="h-28 w-28 cursor-pointer rounded-xl object-cover shadow-sm"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Progress */}
+                            {progress && (
+                                <div>
+                                    <div className="mb-1 flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                                        <span>Uploading...</span>
+                                        <span>{progress.percentage}%</span>
+                                    </div>
+                                    <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                                        <div
+                                            className="h-full rounded-full bg-indigo-600 transition-all duration-300"
+                                            style={{ width: `${progress.percentage}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
 
-                    {/* Buttons */}
-                    <div className="flex gap-3 pt-6">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {processing ? "Updating..." : "Update user"}
-                        </button>
-
-                        <Link
-                            href="/users"
-                            className="rounded-lg border border-gray-700 px-6 py-2.5 text-sm text-gray-300 transition hover:bg-gray-800"
-                        >
-                            Cancel
-                        </Link>
-                    </div>
-                </form>
+                        {/* Actions */}
+                        <div className="mt-8 flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:opacity-50"
+                            >
+                                {processing ? "Updating..." : "Update User"}
+                            </button>
+                            <Link
+                                href="/users"
+                                className="rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                            >
+                                Cancel
+                            </Link>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            {/* Full Image Preview Modal */}
+            {/* Image Preview Modal */}
             {previewImage && (
                 <div
-                    className="fixed inset-0 z-50 flex justify-center items-center bg-black/70"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
                     onClick={() => setPreviewImage(null)}
                 >
                     <div
-                        className="relative max-w-[90vw] max-h-[90vh]"
+                        className="relative max-h-[90vh] max-w-[90vw]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
                             onClick={() => setPreviewImage(null)}
-                            className="absolute -top-3 -right-3 bg-white text-black hover:bg-red-500 hover:text-white rounded-full h-8 w-8 flex items-center justify-center"
+                            className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-800 shadow-lg transition hover:bg-red-500 hover:text-white"
                         >
-                            ✕
+                            <X size={18} />
                         </button>
                         <img
                             src={previewImage}
-                            alt="Full Preview"
-                            className="max-h-[90vh] max-w-[90vw] rounded-sm object-contain"
+                            alt="Preview"
+                            className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
                         />
                     </div>
                 </div>

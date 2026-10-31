@@ -1,6 +1,6 @@
 import { Link, useForm } from "@inertiajs/react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ImagePlus, X, Upload } from "lucide-react";
+import { ImagePlus, X, Upload, ArrowLeft } from "lucide-react";
 import FlashMessage from "@/components/flash-message";
 
 const MAX_SIZE_MB = 2;
@@ -54,9 +54,8 @@ const UploadProgress = ({ percentage }: { percentage: number }) => {
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                        done ? "bg-emerald-500" : "bg-blue-500"
-                    }`}
+                    className={`h-full rounded-full transition-all duration-300 ${done ? "bg-emerald-500" : "bg-blue-500"
+                        }`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
@@ -92,8 +91,8 @@ export default function Edit({ product }: Props) {
         product.images?.length > 0
             ? product.images
             : product.image
-              ? [product.image]
-              : []
+                ? [product.image]
+                : []
     ).filter((p) => !data.remove_images.includes(p));
 
     const totalCount = currentImages.length + data.images.length;
@@ -170,11 +169,18 @@ export default function Edit({ product }: Props) {
     };
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
+        <div className="w-full max-w-2xl px-4 py-8 sm:px-6">
             <FlashMessage />
-
             {/* Header */}
-            <div>
+            <div className="mb-6">
+                <Link
+                    href="/products"
+                    className="mb-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                >
+                    <ArrowLeft size={16} />
+                    Back
+                </Link>
+
                 <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
                     Edit product
                 </h1>
@@ -264,11 +270,10 @@ export default function Edit({ product }: Props) {
 
                         {/* Upload zone */}
                         <label
-                            className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 transition hover:border-blue-400 hover:bg-blue-50/50 dark:border-gray-700 dark:bg-gray-800/40 dark:hover:border-blue-500 dark:hover:bg-blue-950/20 ${
-                                processing || totalCount >= MAX_FILES
+                            className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 transition hover:border-blue-400 hover:bg-blue-50/50 dark:border-gray-700 dark:bg-gray-800/40 dark:hover:border-blue-500 dark:hover:bg-blue-950/20 ${processing || totalCount >= MAX_FILES
                                     ? "pointer-events-none opacity-50"
                                     : ""
-                            }`}
+                                }`}
                         >
                             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
                                 <ImagePlus size={22} />

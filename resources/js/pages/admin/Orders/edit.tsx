@@ -135,8 +135,8 @@ function ChoiceGroup({
                         <label
                             key={opt}
                             className={`cursor-pointer rounded-lg border px-3.5 py-2 text-sm capitalize transition focus-within:ring-2 focus-within:ring-blue-500 ${selected
-                                    ? activeStyles[opt]
-                                    : "border-gray-700 text-gray-300 hover:bg-gray-800"
+                                ? activeStyles[opt]
+                                : "border-gray-700 text-gray-300 hover:bg-gray-800"
                                 }`}
                         >
                             <input
@@ -182,23 +182,21 @@ export default function OrderEdit({ orderEdit: order }: Props) {
     return (
         <div>
             {/* ===================== HEADER ===================== */}
-            <div className="m-2 flex items-center gap-3">
+            <div className="mb-6">
                 <Link
                     href="/orders"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-700 text-gray-300 transition hover:bg-gray-800"
-                    aria-label="Back to orders"
-                    title="Back to orders"
+                    className="m-4 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
-                    <ArrowLeft size={18} />
+                    <ArrowLeft size={16} />
+                    Back
                 </Link>
-                <div>
-                    <h1 className="text-2xl font-semibold">
-                        Edit order #{order.id}
-                    </h1>
-                    <p className="text-sm text-gray-400">
-                        Update the order status and payment
-                    </p>
-                </div>
+
+                <h1 className="text-2xl ml-4 font-bold tracking-tight">
+                    Edit order #{order.id}
+                </h1>
+                <p className="mt-1 text-sm ml-4 text-gray-500 dark:text-gray-400">
+                    Update the order status and payment
+                </p>
             </div>
 
             <div className="m-2 grid gap-3 lg:grid-cols-3">

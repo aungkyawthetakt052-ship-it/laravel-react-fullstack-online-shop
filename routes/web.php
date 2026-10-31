@@ -11,14 +11,24 @@ use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\HomeController;
 use App\Http\Controllers\Shop\OrderController as ShopOrderController;
 use App\Http\Controllers\Shop\ProductController as ShopProductController;
+use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/checkout/{product}', [StripePaymentController::class, 'checkout'])
+    ->name('stripe.checkout');
+
+Route::get('/checkout/success', [StripePaymentController::class, 'success'])
+    ->name('stripe.success');
+
+Route::get('/checkout/cancel', [StripePaymentController::class, 'cancel'])
+    ->name('stripe.cancel');
 
 Route::controller(NotificationController::class)->prefix('notifications')->group(function () {
     // 'read-all' နဲ့ 'delete-all' ကို '{id}' ထက် ရှေ့မှာ ထားပါ
     Route::post('/read-all', 'readAll')->name('notifications.readAll');
     Route::post('/delete-all', 'deleteAll')->name('notifications.delete-all');
-    
+
     Route::post('/{id}/read', 'read')->name('notifications.read');
 });
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -56,6 +66,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::controller(UserController::class)->group(function () {
         Route::get('/users', 'index')->name('users.index');
         Route::get('/user/create', 'create')->name('user.create');
+        Route::get('/user/{user}', 'show')->name('user.show');
         Route::post('/user/create', 'store')->name('user.store');
         Route::get('/user/edit/{user}', 'edit')->name('user.edit');
         Route::match(['put', 'post'], '/user/update/{user}', 'update')->name('user.update');

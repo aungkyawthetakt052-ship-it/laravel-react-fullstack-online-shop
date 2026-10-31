@@ -8,7 +8,10 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Stripe\Checkout\Session as StripeSession;
+use Stripe\Stripe;
 
 class CheckoutController extends Controller
 {
@@ -75,7 +78,7 @@ class CheckoutController extends Controller
             'postal_code' => 'nullable|string|max:20',
             'country' => 'required|string|max:100',
             'shipping_method' => 'required|in:standard,express',
-            'payment_method' => 'required|in:cod,bank',
+            'payment_method' => 'required|in:cod,bank,stripe',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -119,9 +122,8 @@ class CheckoutController extends Controller
 
                 $total = $subtotal + $shippingCost;
 
-                // Order ဖန်တီး
                 $order = Order::create([
-                    'user_id' => Auth::id(),            // null ဖြစ်နိုင် (guest)
+                    'user_id' => Auth::id(),
                     'total' => $total,
                     'status' => 'pending',
                     'payment' => 'unpaid',
@@ -138,7 +140,6 @@ class CheckoutController extends Controller
                     'notes' => $validated['notes'] ?? null,
                 ]);
 
-                // Order items ထည့်
                 foreach ($orderItems as $item) {
                     $order->items()->create($item);
                 }
@@ -151,11 +152,74 @@ class CheckoutController extends Controller
                 ->with('error', $e->getMessage());
         }
 
-        // Cart ရှင်း
+        // ==============================
+        // Stripe ကို ရွေးထားရင် ဒီမှာ ရပ်ပြီး Stripe ကို ပို့မယ်
+        // ==============================
+        if ($validated['payment_method'] === 'stripe') {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $order->load('items.product');
+
+            $lineItems = $order->items->map(function ($item) {
+                // price က dollar အနေနဲ့ ရှိတယ်လို့ ယူဆပြီး cent ပြောင်း
+                $unitAmount = (int) round((float) $item->price * 100);
+
+                // လုံခြုံရေးအတွက် စစ်ဆေး
+                if ($unitAmount < 1) {
+                    throw new \Exception("Invalid price for product: {$item->product->name}");
+                }
+
+                return [
+                    'price_data' => [
+                        'currency' => 'usd',
+                        'product_data' => [
+                            'name' => $item->product->name,
+                        ],
+                        'unit_amount' => $unitAmount,
+                    ],
+                    'quantity' => $item->quantity,
+                ];
+            })->all();
+
+            $itemsTotal = $order->items->sum(fn ($i) => $i->price * $i->quantity);
+            $shippingFee = $order->total - $itemsTotal;
+
+            if ($shippingFee > 0) {
+                $lineItems[] = [
+                    'price_data' => [
+                        'currency' => 'usd',
+                        'product_data' => ['name' => 'Shipping'],
+                        'unit_amount' => (int) round($shippingFee * 100),
+                    ],
+                    'quantity' => 1,
+                ];
+            }
+
+            try {
+                $session = StripeSession::create([
+                    'mode' => 'payment',
+                    'line_items' => $lineItems,
+                    'customer_email' => $order->shipping_email,
+                    'metadata' => ['order_id' => (string) $order->id],
+                    'success_url' => url('/checkout/success').'?session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => url('/checkout/cancel'),
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Stripe error: '.$e->getMessage());
+
+                return back()->with('error', 'Payment error: '.$e->getMessage());
+            }
+
+            session()->forget('cart');
+
+            return Inertia::location($session->url);
+        }
+
+        // ==============================
+        // COD / Bank Transfer
+        // ==============================
         session()->forget('cart');
 
-        // login ဝင်ထားရင် order detail ကို သွား
-        // မဝင်ရင် home သို့မဟုတ် thank-you page
         if (Auth::check()) {
             return redirect()
                 ->route('account.orders.show', $order->id)

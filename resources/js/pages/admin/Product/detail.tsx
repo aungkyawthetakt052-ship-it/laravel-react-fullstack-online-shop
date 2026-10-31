@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import { useState } from "react";
 import {
     ArrowLeft,
@@ -9,7 +9,10 @@ import {
     ChevronLeft,
     ChevronRight,
     ImageOff,
+    Edit,
+    Trash2,
 } from "lucide-react";
+import { confirmDelete } from "@/lib/alert";
 
 interface ProductEdit {
     id: number;
@@ -52,30 +55,57 @@ export default function Detail({ product }: Props) {
                 ? "grid-cols-2"
                 : "grid-cols-3";
 
+    const handleDelete = async () => {
+        const ok = await confirmDelete({
+            title: `Delete user ${product.name}?`,
+            text: "This action cannot be undone.",
+            confirmText: "Yes, delete",
+            cancelText: "Cancel",
+        });
+
+        if (!ok) return;
+
+        router.delete(`/product/delete/${product.id}`, {
+            onSuccess: () => router.visit("/products"),
+        });
+    };
+
     return (
         <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
             {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <Link
                         href="/products"
-                        className="mb-2 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                        className="mb-3 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                     >
                         <ArrowLeft size={16} />
-                        Back to products
+                        Back
                     </Link>
+
                     <h1 className="text-2xl font-bold md:text-3xl">{product.name}</h1>
                     <p className="mt-1 text-sm text-gray-500">SKU: {product.sku}</p>
                 </div>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href={`/product/edit/${product.id}`}
+                    >
 
-                <Link
-                    href={`/product/edit/${product.id}`}
-                    className="inline-flex h-10 items-center rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-500"
-                >
-                    Edit product
-                </Link>
+                        <button className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                            <Edit size={16} />
+                            Edit
+                        </button>
+                    </Link>
+                    <button
+                        onClick={handleDelete}
+                        className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-red-500"
+                    >
+                        <Trash2 size={16} />
+                        Delete
+                    </button>
+
+                </div>
             </div>
-
             <div className="grid gap-6 lg:grid-cols-5">
                 {/* ========== IMAGES ========== */}
                 <div className="space-y-3 lg:col-span-3">
@@ -120,8 +150,8 @@ export default function Detail({ product }: Props) {
                                         key={index}
                                         onClick={() => setCurrent(index)}
                                         className={`h-20 w-30 shrink-0 overflow-hidden rounded-xl border-2 transition ${index === current
-                                                ? "border-blue-500 ring-2 ring-blue-500/30"
-                                                : "border-transparent opacity-60 hover:opacity-100"
+                                            ? "border-blue-500 ring-2 ring-blue-500/30"
+                                            : "border-transparent opacity-60 hover:opacity-100"
                                             }`}
                                     >
                                         <img

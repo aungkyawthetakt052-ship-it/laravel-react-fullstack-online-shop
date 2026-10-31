@@ -1,4 +1,4 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import ShopLayout from '@/layouts/shop-layout';
 import { useState } from 'react';
 import { CreditCard, Truck, MapPin } from 'lucide-react';
@@ -45,6 +45,9 @@ export default function CheckoutIndex({ items = [], subtotal = 0, shipping = 0, 
       },
     });
   };
+  const { flash } = usePage<{
+  flash?: { success?: string; error?: string };
+}>().props;
 
   return (
     <ShopLayout>
@@ -61,6 +64,21 @@ export default function CheckoutIndex({ items = [], subtotal = 0, shipping = 0, 
                   <MapPin className="w-5 h-5 text-rose-500" />
                   Contact & Shipping
                 </h2>
+                {flash?.error && (
+                  <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {flash.error}
+                  </div>
+                )}
+
+                {Object.keys(errors).length > 0 && (
+                  <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <ul className="list-disc pl-5">
+                      {Object.values(errors).map((msg, i) => (
+                        <li key={i}>{msg}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
@@ -225,6 +243,20 @@ export default function CheckoutIndex({ items = [], subtotal = 0, shipping = 0, 
                       <p className="text-sm text-gray-500">KBZ / Wave / AYA</p>
                     </div>
                   </label>
+                  <label className="flex items-center gap-3 p-4 border border-rose-200 rounded-xl cursor-pointer hover:bg-rose-50 has-checked:border-rose-500 has-checked:bg-rose-50">
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="stripe"
+                      checked={data.payment_method === 'stripe'}
+                      onChange={(e) => setData('payment_method', e.target.value)}
+                      className="text-rose-600"
+                    />
+                    <div>
+                      <p className="font-medium">Pay with Card (Stripe)</p>
+                      <p className="text-sm text-gray-500">Visa / Mastercard</p>
+                    </div>
+                  </label>
                 </div>
               </section>
 
@@ -288,7 +320,11 @@ export default function CheckoutIndex({ items = [], subtotal = 0, shipping = 0, 
                   disabled={processing || items.length === 0}
                   className="mt-6 w-full bg-rose-600 text-white py-3.5 rounded-full font-medium hover:bg-rose-700 transition disabled:opacity-50"
                 >
-                  {processing ? 'Placing Order...' : 'Place Order'}
+                  {processing
+                    ? 'Please wait...'
+                    : data.payment_method === 'stripe'
+                      ? 'Pay with Card'
+                      : 'Place Order'}
                 </button>
 
                 <p className="mt-4 text-xs text-center text-gray-400">

@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    protected $fillable = ['quantity','total','status','product','image', 
+    protected $fillable = [
+        'user_id',
+        'total',
+        'status',
+        'payment',              // ← ဒီဟာ အရေးကြီးဆုံး (ပျောက်နေတာ)
         'shipping_name',
         'shipping_email',
         'shipping_phone',
@@ -17,14 +21,15 @@ class Order extends Model
         'shipping_country',
         'shipping_method',
         'payment_method',
-        'notes',];
-    public function user(){
+        'notes',
+    ];
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
-    public function product(){
-        return $this->belongsTo(Product::class);
-    }
-     public function items()
+
+    public function items()
     {
         return $this->hasMany(OrderItem::class);
     }

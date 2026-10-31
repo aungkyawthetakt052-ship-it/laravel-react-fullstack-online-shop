@@ -34,6 +34,13 @@ class UserController extends Controller
         ]);
     }
 
+    public function show(User $user)
+    {
+        return Inertia::render('admin/User/show', [
+            'user' => $user,
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('admin/User/create');
@@ -108,7 +115,6 @@ class UserController extends Controller
             $user->image = $path;
         }
         $user->save();
-       
 
         return redirect()->route('users.index')->with('success', 'User was updated succesfully');
 

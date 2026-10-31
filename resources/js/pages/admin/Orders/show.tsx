@@ -155,34 +155,33 @@ export default function OrderShow({ orderDetail: order }: Props) {
     return (
         <div>
             {/* ===================== HEADER ===================== */}
-            <div className="m-2 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
                     <Link
                         href="/orders"
-                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-700 text-gray-300 transition hover:bg-gray-800"
-                        aria-label="Back to orders"
-                        title="Back to orders"
+                        className="m-3 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeft size={16} />
+                        Back
                     </Link>
-                    <div>
-                        <h1 className="text-2xl font-semibold">
-                            Order #{order.id}
-                        </h1>
-                        <p className="flex items-center gap-1.5 text-sm text-gray-400">
-                            <Calendar size={14} />
-                            Placed on {formatDateTime(order.created_at)}
-                        </p>
-                    </div>
+
+                    <h1 className="text-2xl m-3 font-bold tracking-tight">
+                        Order #{order.id}
+                    </h1>
+                    <p className="mt-1 m-3 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                        <Calendar size={14} />
+                        Placed on {formatDateTime(order.created_at)}
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <Badge value={order.status} styles={statusStyle} />
                     <Link
                         href={`/order/edit/${order.id}`}
-                        className="flex h-10 items-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500"
+                        className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500"
                     >
-                        <Pencil size={16} /> Edit order
+                        <Pencil size={16} />
+                        Edit order
                     </Link>
                 </div>
             </div>
